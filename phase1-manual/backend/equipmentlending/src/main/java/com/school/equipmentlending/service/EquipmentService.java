@@ -1,14 +1,17 @@
 package com.school.equipmentlending.service;
 
+import com.school.equipmentlending.controller.EquipmentController;
 import com.school.equipmentlending.model.Equipment;
 import com.school.equipmentlending.repository.EquipmentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
 public class EquipmentService {
-
+    private static final Logger logger = LoggerFactory.getLogger(EquipmentService.class);
     private final EquipmentRepository repo;
 
     public EquipmentService(EquipmentRepository repo) {

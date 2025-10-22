@@ -4,6 +4,8 @@ import com.school.equipmentlending.model.Role;
 import com.school.equipmentlending.model.User;
 import com.school.equipmentlending.repository.RoleRepository;
 import com.school.equipmentlending.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
@@ -11,7 +13,7 @@ import java.util.HashSet;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-
+    private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
 

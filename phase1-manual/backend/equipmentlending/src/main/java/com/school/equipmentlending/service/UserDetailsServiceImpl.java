@@ -1,7 +1,10 @@
 package com.school.equipmentlending.service;
 
+import com.school.equipmentlending.controller.EquipmentController;
 import com.school.equipmentlending.model.User;
 import com.school.equipmentlending.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
-
+    private static final Logger logger = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
     private final UserRepository userRepository;
 
     public UserDetailsServiceImpl(UserRepository userRepository) {
