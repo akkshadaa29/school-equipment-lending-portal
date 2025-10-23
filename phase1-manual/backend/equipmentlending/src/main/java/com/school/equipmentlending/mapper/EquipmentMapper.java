@@ -15,6 +15,7 @@ public class EquipmentMapper {
         dto.setQuantity(equipment.getQuantity());
         dto.setAvailable(equipment.isAvailable());
         dto.setCreatedAt(equipment.getCreatedAt());
+        // availableUnits will be set by the service after computing reservations
         return dto;
     }
 
@@ -34,6 +35,5 @@ public class EquipmentMapper {
         if (req.getCondition() != null) equipment.setCondition(req.getCondition());
         if (req.getQuantity() != null) equipment.setQuantity(req.getQuantity());
         if (req.getAvailable() != null) equipment.setAvailable(req.getAvailable());
-        // note: createdAt not modified
     }
 }

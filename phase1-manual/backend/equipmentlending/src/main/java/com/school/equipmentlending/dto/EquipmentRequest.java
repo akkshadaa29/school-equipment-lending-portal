@@ -17,10 +17,8 @@ public class EquipmentRequest {
     @Min(value = 0, message = "quantity must be >= 0")
     private Integer quantity;
 
-    // optional override; normally availability is derived from quantity
-    private Boolean available;
+    private Boolean available; // optional override
 
-    // getters / setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 

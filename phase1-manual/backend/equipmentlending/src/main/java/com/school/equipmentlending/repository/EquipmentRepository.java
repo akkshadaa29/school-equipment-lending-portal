@@ -11,8 +11,25 @@ import java.util.List;
 import java.util.Optional;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
+
+    // case-insensitive category
+    List<Equipment> findByCategoryIgnoreCase(String category);
+
+    // convenience: all available (stored flag)
     List<Equipment> findByAvailableTrue();
-    List<Equipment> findByCategory(String category);
+
+    // availability general
+    List<Equipment> findByAvailable(boolean available);
+
+    // partial name search
+    List<Equipment> findByNameContainingIgnoreCase(String namePart);
+
+    // combined helpers
+    List<Equipment> findByNameContainingIgnoreCaseAndCategoryIgnoreCase(String namePart, String category);
+    List<Equipment> findByNameContainingIgnoreCaseAndAvailableTrue(String namePart);
+    List<Equipment> findByNameContainingIgnoreCaseAndCategoryIgnoreCaseAndAvailableTrue(String namePart, String category);
+
+    Optional<Equipment> findById(Long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Equipment e WHERE e.id = :id")

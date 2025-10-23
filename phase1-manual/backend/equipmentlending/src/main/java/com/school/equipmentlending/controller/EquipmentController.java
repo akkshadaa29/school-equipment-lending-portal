@@ -2,75 +2,85 @@ package com.school.equipmentlending.controller;
 
 import com.school.equipmentlending.dto.EquipmentDTO;
 import com.school.equipmentlending.dto.EquipmentRequest;
-import com.school.equipmentlending.exception.ResourceNotFoundException;
 import com.school.equipmentlending.mapper.EquipmentMapper;
 import com.school.equipmentlending.model.Equipment;
 import com.school.equipmentlending.repository.EquipmentRepository;
+import com.school.equipmentlending.service.EquipmentService;
+import com.school.equipmentlending.exception.ResourceNotFoundException;
 
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/equipments")
 public class EquipmentController {
 
     private static final Logger logger = LoggerFactory.getLogger(EquipmentController.class);
+
+    private final EquipmentService equipmentService;
     private final EquipmentRepository equipmentRepository;
 
-    public EquipmentController(EquipmentRepository equipmentRepository) {
+    public EquipmentController(EquipmentService equipmentService,
+                               EquipmentRepository equipmentRepository) {
+        this.equipmentService = equipmentService;
         this.equipmentRepository = equipmentRepository;
     }
 
+    /** Dashboard: list all with availability */
     @GetMapping
-    public List<EquipmentDTO> getAllEquipments() {
-        logger.info("Fetching all equipments");
-        return equipmentRepository.findAll().stream().map(EquipmentMapper::toDTO).collect(Collectors.toList());
+    public ResponseEntity<List<EquipmentDTO>> getAllEquipments() {
+        logger.info("Fetching all equipments (dashboard)");
+        return ResponseEntity.ok(equipmentService.getAllEquipment());
     }
 
+    /**
+     * Search/filter endpoint:
+     * GET /api/equipments/search?category=Sports&available=true
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<EquipmentDTO>> searchEquipments(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean available) {
+        logger.info("Searching equipments: category='{}', available={}", category, available);
+        return ResponseEntity.ok(equipmentService.search(category, available));
+    }
+
+    /** convenience: list available */
     @GetMapping("/available")
-    public List<EquipmentDTO> getAvailableEquipments() {
-        logger.info("Fetching available equipments");
-        return equipmentRepository.findByAvailableTrue().stream().map(EquipmentMapper::toDTO).collect(Collectors.toList());
+    public ResponseEntity<List<EquipmentDTO>> getAvailableEquipments() {
+        logger.info("Fetching available equipments (convenience)");
+        return ResponseEntity.ok(equipmentService.getAvailableEquipment());
     }
 
     @GetMapping("/{id}")
-    public EquipmentDTO getEquipmentById(@PathVariable Long id) {
+    public ResponseEntity<EquipmentDTO> getEquipmentById(@PathVariable Long id) {
         logger.info("Fetching equipment with ID: {}", id);
-        Equipment equipment = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with id " + id));
-        return EquipmentMapper.toDTO(equipment);
+        return ResponseEntity.ok(equipmentService.getById(id));
     }
 
     @PostMapping
-    public EquipmentDTO createEquipment(@Valid @RequestBody EquipmentRequest req) {
+    public ResponseEntity<EquipmentDTO> createEquipment(@Valid @RequestBody EquipmentRequest req) {
         logger.info("Creating new equipment: {}", req.getName());
-        Equipment toSave = EquipmentMapper.fromRequest(req);
-        Equipment saved = equipmentRepository.save(toSave);
-        return EquipmentMapper.toDTO(saved);
+        EquipmentDTO dto = equipmentService.createEquipment(req);
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}")
-    public EquipmentDTO updateEquipment(@PathVariable Long id, @Valid @RequestBody EquipmentRequest req) {
+    public ResponseEntity<EquipmentDTO> updateEquipment(@PathVariable Long id, @Valid @RequestBody EquipmentRequest req) {
         logger.info("Updating equipment id: {}", id);
-        Equipment equipment = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with id " + id));
-        EquipmentMapper.applyUpdate(equipment, req);
-        Equipment saved = equipmentRepository.save(equipment);
-        return EquipmentMapper.toDTO(saved);
+        EquipmentDTO dto = equipmentService.updateEquipment(id, req);
+        return ResponseEntity.ok(dto);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEquipment(@PathVariable Long id) {
         logger.info("Deleting equipment with ID: {}", id);
-        Equipment equipment = equipmentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with id " + id));
-        equipmentRepository.delete(equipment);
+        equipmentService.deleteEquipment(id);
         return ResponseEntity.noContent().build();
     }
 }

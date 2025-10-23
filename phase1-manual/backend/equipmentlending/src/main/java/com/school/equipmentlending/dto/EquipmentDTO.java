@@ -9,9 +9,9 @@ public class EquipmentDTO {
     private String condition;
     private int quantity;
     private boolean available;
+    private int availableUnits; // computed: quantity - reserved
     private LocalDateTime createdAt;
 
-    // getters / setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -29,6 +29,9 @@ public class EquipmentDTO {
 
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+
+    public int getAvailableUnits() { return availableUnits; }
+    public void setAvailableUnits(int availableUnits) { this.availableUnits = availableUnits; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

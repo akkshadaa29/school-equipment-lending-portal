@@ -11,7 +11,6 @@ public class Equipment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // basic fields
     @Column(nullable = false)
     private String name;
 
@@ -21,15 +20,14 @@ public class Equipment {
     @Column(name = "`condition`")
     private String condition;
 
-    // number of units available in inventory
+    // total number of units in inventory (authoritative)
     @Column(nullable = false)
     private int quantity = 1;
 
-    // quick flag: true when one or more units available (kept for convenience)
+    // convenience flag (kept for quick reads; we also compute availability from loans)
     @Column(nullable = false)
     private boolean available = true;
 
-    // audit
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -38,9 +36,8 @@ public class Equipment {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        // ensure available is consistent with quantity
-        if (this.quantity > 0) this.available = true;
-        else this.available = false;
+        // ensure available is consistent with quantity at creation
+        this.available = this.quantity > 0;
     }
 
     // Getters / setters
@@ -59,7 +56,6 @@ public class Equipment {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) {
         this.quantity = Math.max(0, quantity);
-        // keep available consistent with quantity
         this.available = this.quantity > 0;
     }
 
