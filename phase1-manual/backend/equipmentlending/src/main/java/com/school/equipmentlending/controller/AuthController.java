@@ -30,12 +30,15 @@ public class AuthController {
     private final JwtUtils jwtUtils;
     private final UserRepository userRepository;
 
+    private final UserService userService;
+
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtils jwtUtils,
-                          UserRepository userRepository) {
+                          UserRepository userRepository, UserService userService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -77,5 +80,9 @@ public class AuthController {
                 .collect(Collectors.toList());
         UserDTO dto = new UserDTO(user.getId(), user.getUsername(), roles);
         return ResponseEntity.ok(dto);
+    }
+    @PostMapping("/signup")
+    public User registerUser(@RequestBody SignupRequest request) {
+        return userService.registerUser(request);
     }
 }
