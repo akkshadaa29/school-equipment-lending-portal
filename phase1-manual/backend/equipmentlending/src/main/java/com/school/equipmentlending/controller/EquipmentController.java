@@ -18,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/equipments")
+@CrossOrigin(origins = "http://localhost:5173")
 public class EquipmentController {
 
     private static final Logger logger = LoggerFactory.getLogger(EquipmentController.class);
@@ -44,10 +45,11 @@ public class EquipmentController {
      */
     @GetMapping("/search")
     public ResponseEntity<List<EquipmentDTO>> searchEquipments(
+            @RequestParam(required = false) String q,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Boolean available) {
         logger.info("Searching equipments: category='{}', available={}", category, available);
-        return ResponseEntity.ok(equipmentService.search(category, available));
+        return ResponseEntity.ok(equipmentService.search(q,category, available));
     }
 
     /** convenience: list available */

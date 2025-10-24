@@ -40,9 +40,10 @@ public class EquipmentService {
      * - category: exact match (ignore case)
      * - available: if true, only return items with availableUnits > 0; if false, only those with availableUnits == 0
      */
-    public List<EquipmentDTO> search(String category, Boolean available) {
+    public List<EquipmentDTO> search(String q, String category, Boolean available) {
         LocalDateTime now = LocalDateTime.now();
 
+        // Fetch initial list based on category
         List<Equipment> list;
         if (category != null && !category.isBlank()) {
             list = equipmentRepository.findByCategoryIgnoreCase(category);
@@ -50,18 +51,31 @@ public class EquipmentService {
             list = equipmentRepository.findAll();
         }
 
+        // Convert and filter
         return list.stream()
                 .map(e -> toDtoWithAvailability(e, now))
                 .filter(dto -> {
-                    if (available == null) return true;
-                    if (available) return dto.getAvailableUnits() > 0;
-                    return dto.getAvailableUnits() == 0;
+
+                    if (available != null) {
+                        if (available && dto.getAvailableUnits() <= 0) return false;
+                        if (!available && dto.getAvailableUnits() > 0) return false;
+                    }
+
+                    if (q != null && !q.isBlank()) {
+                        String query = q.toLowerCase();
+                        return dto.getName().toLowerCase().contains(query)
+                                || (dto.getCategory() != null && dto.getCategory().toLowerCase().contains(query))
+                                || (dto.getName() != null && dto.getName().toLowerCase().contains(query));
+                    }
+
+                    return true;
                 })
                 .collect(Collectors.toList());
     }
 
+
     public List<EquipmentDTO> getAvailableEquipment() {
-        return search(null, true);
+        return search(null, null,true);
     }
 
     public EquipmentDTO getById(Long id) {
