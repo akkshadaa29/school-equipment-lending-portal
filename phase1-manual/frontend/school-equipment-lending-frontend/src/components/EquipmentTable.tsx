@@ -50,3 +50,4 @@ export const EquipmentTable: React.FC<{ rows: Equipment[] }> = ({ rows }) => {
     </div>
   );
 };
+export default EquipmentTable;

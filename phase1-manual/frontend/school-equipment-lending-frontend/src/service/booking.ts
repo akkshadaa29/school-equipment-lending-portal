@@ -1,13 +1,12 @@
-// src/services/booking.ts
 import { api } from "../lib/axios";
 
 export type Booking = {
   id: number;
   equipmentId: number;
   equipmentName?: string;
-  quantity: number;
-  startAt: string; // ISO
-  endAt: string; // ISO
+  quantityRequested: number;
+  startAt: string;
+  endAt: string;
   status: "PENDING" | "APPROVED" | "REJECTED";
   createdAt?: string;
   requestedBy?: { id?: number; username?: string };
@@ -18,15 +17,16 @@ export type Loan = {
   equipmentId: number;
   equipmentName?: string;
   quantity: number;
-  borrowedAt: string; // ISO
-  dueAt: string; // ISO
+  borrowedAt: string;
+  dueAt: string;
   returnedAt?: string | null;
   status: "BORROWED" | "RETURNED" | "OVERDUE";
 };
 
+// ✅ remove the extra /api
 export const createBooking = async (payload: {
   equipmentId: number;
-  quantity: number;
+  quantityRequested: number;
   startAt: string;
   endAt: string;
 }) => {

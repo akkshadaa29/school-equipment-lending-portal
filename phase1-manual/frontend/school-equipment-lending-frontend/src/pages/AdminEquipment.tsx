@@ -79,53 +79,104 @@ const AdminEquipment: React.FC = () => {
   // basic columns for table
   const columns = useMemo(() => ["Name", "Category", "Condition", "Available Units", "Actions"], []);
 
+  // --- Inline styles for quick paste ---
+  const styles: Record<string, React.CSSProperties> = {
+    headerRowWrap: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
+    card: { padding: 0 },
+    tableWrapper: {
+      // change maxHeight to suit your layout; using viewport so it grows/shrinks with screen
+      maxHeight: "80vh",
+      overflowY: "auto",
+      borderTop: "1px solid #efefef",
+      borderBottom: "1px solid #efefef",
+      // keep rounded card corners if your .card uses them
+      borderRadius: 6,
+    },
+    table: {
+      width: "100%",
+      borderCollapse: "collapse",
+      // ensure the table doesn't shrink when inside a block with overflow
+      tableLayout: "auto",
+      minWidth: "700px", // optional: prevents columns from collapsing on very small widths
+    },
+    th: {
+      padding: "16px 20px",
+      textAlign: "left",
+      position: "sticky",
+      top: 0,
+      background: "#fff",
+      zIndex: 2,
+      borderBottom: "1px solid #eee",
+    },
+    td: { padding: "16px 20px", borderBottom: "1px solid #f3f3f3", verticalAlign: "middle" },
+    loadingRow: { padding: 20 },
+  };
+
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+      <div style={styles.headerRowWrap}>
         <h2 style={{ margin: 0 }}>Manage Equipment</h2>
         <div>
-          <button className="btn-primary" onClick={openAdd}>+ Add equipment</button>
+          <button className="btn-primary" onClick={openAdd}>
+            + Add equipment
+          </button>
         </div>
       </div>
 
-      <div className="card table-card" style={{ padding: 0 }}>
-        <table className="equip-table" style={{ width: "100%" }}>
-          <thead>
-            <tr>
-              {columns.map((c) => <th key={c} style={{ padding: "16px 20px", textAlign: "left" }}>{c}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading && (
-              <tr><td colSpan={5} style={{ padding: 20 }}>Loading…</td></tr>
-            )}
-
-            {!isLoading && rows.length === 0 && (
-              <tr><td colSpan={5} style={{ padding: 20 }}>No equipment found.</td></tr>
-            )}
-
-            {!isLoading && rows.map((r: any) => (
-              <tr key={r.id}>
-                <td style={{ padding: "16px 20px" }}>{r.name}</td>
-                <td style={{ padding: "16px 20px" }}>{r.category}</td>
-                <td style={{ padding: "16px 20px" }}>{r.condition ?? "Unknown"}</td>
-                <td style={{ padding: "16px 20px" }}>{r.availableUnits ?? r.quantity ?? 0}</td>
-                <td style={{ padding: "16px 20px" }}>
-                  <button className="btn-ghost" onClick={() => openEdit(r)} style={{ marginRight: 8 }}>Edit</button>
-                  <button className="btn-small" onClick={() => handleDelete(r.id)}>Delete</button>
-                </td>
+      <div className="card table-card" style={styles.card}>
+        {/* This wrapper provides the scroll bar for the table only */}
+        <div style={styles.tableWrapper}>
+          <table className="equip-table" style={styles.table}>
+            <thead>
+              <tr>
+                {columns.map((c) => (
+                  <th key={c} style={styles.th}>
+                    {c}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {isLoading && (
+                <tr>
+                  <td colSpan={5} style={{ ...styles.td, ...styles.loadingRow }}>
+                    Loading…
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading && rows.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ ...styles.td, ...styles.loadingRow }}>
+                    No equipment found.
+                  </td>
+                </tr>
+              )}
+
+              {!isLoading &&
+                rows.map((r: any) => (
+                  <tr key={r.id}>
+                    <td style={styles.td}>{r.name}</td>
+                    <td style={styles.td}>{r.category}</td>
+                    <td style={styles.td}>{r.condition ?? "Unknown"}</td>
+                    <td style={styles.td}>{r.availableUnits ?? r.quantity ?? 0}</td>
+                    <td style={styles.td}>
+                      <button className="btn-ghost" onClick={() => openEdit(r)} style={{ marginRight: 8 }}>
+                        Edit
+                      </button>
+                      <button className="btn-small" onClick={() => handleDelete(r.id)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <EquipmentModal
-        open={modalOpen}
-        initial={editing ?? undefined}
-        onClose={() => setModalOpen(false)}
-        onSave={handleSave}
-      />
+      <EquipmentModal open={modalOpen} initial={editing ?? undefined} onClose={() => setModalOpen(false)} onSave={handleSave} />
     </div>
   );
 };

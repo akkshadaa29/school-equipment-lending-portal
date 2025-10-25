@@ -1,13 +1,15 @@
 // src/pages/Dashboard.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchEquipments } from "../service/equipment";
 import { EquipmentTable } from "../components/EquipmentTable";
+import { useAutoRefresh } from "../context/AutoRefreshContext";
 
 const Dashboard: React.FC = () => {
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
   const [availableOnly, setAvailableOnly] = useState(true);
+  const { lastRefresh } = useAutoRefresh(); // <-- use the global refresh
 
   const { data: rows = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["equipments", { q, category, availableOnly }],
@@ -21,30 +23,27 @@ const Dashboard: React.FC = () => {
     staleTime: 60_000,
   });
 
+  // Refetch equipment data whenever lastRefresh changes
+  useEffect(() => {
+    refetch();
+  }, [lastRefresh, refetch]);
+
   return (
     <div className="dashboard">
-      {/* Header: Brand (left) and toolbar (below) */}
+      {/* Header and toolbar (unchanged) */}
       <header className="dashboard-header">
         <div className="header-top">
           <div className="brand-inline" aria-hidden>
             <div className="brand-mark">EH</div>
             <div className="brand-title">Equipment Inventory</div>
           </div>
-
-          {/* intentionally removed "+ Add Equipment" button from Dashboard */}
           <div className="header-actions-desktop" aria-hidden />
         </div>
 
         <div className="header-toolbar">
-          <div className="toolbar-left" aria-hidden>
-            {/* Optional place for breadcrumbs, stats, or small subtitle */}
-          </div>
-
+          <div className="toolbar-left" aria-hidden />
           <div className="toolbar-controls">
-            <div
-              className="search control-search"
-              style={{ display: "flex", alignItems: "center", gap: 8 }}
-            >
+            <div className="search control-search" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
                 <path fill="currentColor" d="M21 21l-4.35-4.35" />
               </svg>
@@ -52,9 +51,7 @@ const Dashboard: React.FC = () => {
                 placeholder="Search equipment..."
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") refetch();
-                }}
+                onKeyDown={(e) => { if (e.key === "Enter") refetch(); }}
                 aria-label="Search equipment"
                 style={{ border: 0, outline: "none", width: 240 }}
               />
@@ -88,9 +85,7 @@ const Dashboard: React.FC = () => {
 
       {/* Content */}
       {isLoading && <div className="card table-card">Loading equipment…</div>}
-      {isError && (
-        <div className="card table-card">Error loading equipment. Try refresh.</div>
-      )}
+      {isError && <div className="card table-card">Error loading equipment. Try refresh.</div>}
       {!isLoading && !isError && <EquipmentTable rows={rows} />}
     </div>
   );

@@ -20,13 +20,11 @@ const Sidebar: React.FC = () => {
         </ul>
       </nav>
       <div className="sidebar-footer">
-  <div className="user-name">{user?.username}</div>
-  <div className="logout" onClick={logout}>
-    Logout
-  </div>
-</div>
-
-
+        <div className="user-name">{user?.username}</div>
+        <div className="logout" onClick={logout}>
+          Logout
+        </div>
+      </div>
     </aside>
   );
 };

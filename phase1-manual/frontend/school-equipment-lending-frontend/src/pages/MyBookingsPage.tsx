@@ -1,35 +1,38 @@
-// src/pages/MyBookingsPage.tsx
-import React from "react";
+// src/pages/Bookings.tsx
+import React, { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {BookingList} from "../components/BookingList";
-import type { Booking } from "../service/booking";
-
-/**
- * Fetch bookings for current user.
- * Adjust the endpoint to your API/service if you have a dedicated service helper.
- */
-const fetchMyBookings = async (): Promise<Booking[]> => {
-  const res = await fetch("/api/bookings/my");
-  if (!res.ok) throw new Error("Failed to fetch bookings");
-  return res.json();
-};
+import { getMyBookings } from "../service/booking";
+import { BookingList } from "../components/BookingList";
+import { useAutoRefresh } from "../context/AutoRefreshContext";
 
 const MyBookingsPage: React.FC = () => {
-  const { data: bookings = [], isLoading, error, refetch } = useQuery<Booking[], Error>({
-    queryKey: ["bookings", "mine"],
-    queryFn: fetchMyBookings,
+  const { lastRefresh } = useAutoRefresh();
+
+  const {
+    data: myBookings = [],
+    isLoading: bookingsLoading,
+    isError: bookingsError,
+    refetch: refetchBookings,
+  } = useQuery({
+    queryKey: ["bookings", "me"],
+    queryFn: getMyBookings,
+    staleTime: 60_000,
   });
+
+  useEffect(() => {
+    refetchBookings();
+  }, [lastRefresh, refetchBookings]);
 
   return (
     <div>
       <h2 className="section-title">My Bookings</h2>
 
-      {isLoading && <div className="card">Loading bookings...</div>}
-      {error && <div className="card">Failed to load bookings: {error.message}</div>}
+      {bookingsLoading && <div className="card table-card">Loading bookings…</div>}
+      {bookingsError && <div className="card table-card">Failed to load bookings.</div>}
 
-      {!isLoading && !error && (
+      {!bookingsLoading && !bookingsError && (
         <div className="card table-card">
-          <BookingList bookings={bookings} onApprove={undefined} onReject={undefined} />
+          <BookingList bookings={myBookings} />
         </div>
       )}
     </div>

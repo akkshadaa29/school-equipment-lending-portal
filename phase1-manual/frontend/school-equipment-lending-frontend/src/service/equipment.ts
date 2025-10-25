@@ -5,20 +5,18 @@ export type Equipment = {
   id: number;
   name: string;
   category: string;
-  condition: string;
-  quantity?: number;
-  availableUnits?: number;
   available?: boolean;
+  quantity?: number;
   createdAt?: string;
 };
 
 /**
  * Fetch equipments from backend.
  *
- * If any filter/search is provided, call:
+ * If any filter/search is provided, calls:
  *   GET /api/equipments/search?q=...&category=...&available=true|false
  *
- * Otherwise call:
+ * Otherwise calls:
  *   GET /api/equipments
  */
 export const fetchEquipments = async (params?: {
@@ -49,16 +47,18 @@ export const fetchEquipments = async (params?: {
 /**
  * Create a new equipment (Admin only)
  * POST /api/equipments
- * body: { name, category, available }
+ * Payload exactly: { name, category, available, quantity }
  */
 export const createEquipment = async (payload: {
   name: string;
-  category?: string;
-  available?: boolean;
-  quantity?: number;
+  category: string;
+  available: boolean;
+  quantity: number;
 }) => {
   const res = await api.post("/equipments", payload, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+    },
   });
   return res.data;
 };
@@ -77,7 +77,9 @@ export const updateEquipment = async (
   }>
 ) => {
   const res = await api.put(`/equipments/${id}`, payload, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+    },
   });
   return res.data;
 };
@@ -88,7 +90,9 @@ export const updateEquipment = async (
  */
 export const deleteEquipment = async (id: number) => {
   const res = await api.delete(`/equipments/${id}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+    },
   });
   return res.data;
 };

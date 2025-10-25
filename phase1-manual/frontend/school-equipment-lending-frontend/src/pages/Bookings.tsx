@@ -1,11 +1,13 @@
 // src/pages/Bookings.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getMyBookings, getMyLoans, returnLoan } from "../service/booking";
 import { BookingList } from "../components/BookingList";
+import { useAutoRefresh } from "../context/AutoRefreshContext"; // <-- import
 
 const BookingsPage: React.FC = () => {
   const qc = useQueryClient();
+  const { lastRefresh } = useAutoRefresh(); // <-- use the global refresh
 
   // My bookings
   const { data: myBookings = [], isLoading: bookingsLoading, isError: bookingsError, refetch: refetchBookings } = useQuery({
@@ -30,6 +32,11 @@ const BookingsPage: React.FC = () => {
       alert("Loan returned");
     },
   });
+
+  // Refetch bookings and loans whenever lastRefresh changes
+  useEffect(() => {
+    refetchBookings();
+  }, [lastRefresh, refetchBookings]);
 
   return (
     <div>

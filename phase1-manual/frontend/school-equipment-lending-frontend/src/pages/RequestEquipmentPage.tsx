@@ -3,16 +3,18 @@ import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEquipments } from "../service/equipment";
 import { BookingForm } from "../components/BookingForm";
+import { toast } from "react-hot-toast"; // 
 
 const RequestEquipmentPage: React.FC = () => {
   const qc = useQueryClient();
 
-  const { data: equipments = [], isLoading, isError } = useQuery({
+  const {
+    data: equipments = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["equipments", { for: "request" }],
-    queryFn: () =>
-      fetchEquipments({
-        // no filters for the form — fetch full list
-      }),
+    queryFn: () => fetchEquipments(),
     staleTime: 60_000,
   });
 
@@ -28,9 +30,12 @@ const RequestEquipmentPage: React.FC = () => {
           <BookingForm
             equipments={equipments}
             onSuccess={() => {
-              // Refresh equipment + bookings lists after a new request
+              toast.success("Booking request submitted successfully!");
               qc.invalidateQueries({ queryKey: ["equipments"] });
               qc.invalidateQueries({ queryKey: ["bookings", "me"] });
+            }}
+            onError={(errorMsg?: string) => {
+              toast.error(errorMsg || "Failed to submit booking request");
             }}
           />
         </div>

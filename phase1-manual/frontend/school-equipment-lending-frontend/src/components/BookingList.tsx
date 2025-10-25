@@ -9,8 +9,14 @@ type Props = {
   onReject?: (id: number) => void;
 };
 
-export const BookingList: React.FC<Props> = ({ bookings, isAdmin = false, onApprove, onReject }) => {
-  if (!bookings?.length) return <div className="card table-card">No bookings.</div>;
+export const BookingList: React.FC<Props> = ({
+  bookings,
+  isAdmin = false,
+  onApprove,
+  onReject,
+}) => {
+  if (!bookings?.length)
+    return <div className="card table-card">No bookings.</div>;
 
   return (
     <div className="card table-card">
@@ -22,26 +28,51 @@ export const BookingList: React.FC<Props> = ({ bookings, isAdmin = false, onAppr
             <th>Range</th>
             <th>Status</th>
             <th>Requested by</th>
-            <th>Actions</th>
+            {isAdmin && <th>Actions</th>}
           </tr>
         </thead>
         <tbody>
           {bookings.map((b) => (
             <tr key={b.id}>
               <td>{b.equipmentName ?? `#${b.equipmentId}`}</td>
-              <td>{b.quantity}</td>
-              <td>{new Date(b.startAt).toLocaleString()} → {new Date(b.endAt).toLocaleString()}</td>
-              <td><span className={`status status-${b.status}`}>{b.status}</span></td>
-              <td>{b.requestedBy?.username ?? "-"}</td>
+
+              {/* Quantity fallback */}
+              <td>{b.quantity ?? b.quantityRequested ?? "-"}</td>
+
               <td>
-                {isAdmin && b.status === "PENDING" && (
-                  <>
-                    <button onClick={() => onApprove?.(b.id)} className="btn-small">Approve</button>
-                    <button onClick={() => onReject?.(b.id)} className="btn-ghost">Reject</button>
-                  </>
-                )}
-                {!isAdmin && b.status === "PENDING" && <em>Pending</em>}
+                {new Date(b.startAt).toLocaleString()} →{" "}
+                {new Date(b.endAt).toLocaleString()}
               </td>
+
+              <td>
+                <span className={`status status-${b.status}`}>{b.status}</span>
+              </td>
+
+              {/* Requested by fallback */}
+              <td>{b.requestedBy?.username ?? b.requesterUsername ?? "-"}</td>
+
+              {isAdmin && (
+                <td>
+                  {b.status === "PENDING" ? (
+                    <>
+                      <button
+                        onClick={() => onApprove?.(b.id)}
+                        className="btn-small"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        onClick={() => onReject?.(b.id)}
+                        className="btn-ghost"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : (
+                    <em>{b.status}</em>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

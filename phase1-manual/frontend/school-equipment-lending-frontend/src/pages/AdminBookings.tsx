@@ -1,5 +1,5 @@
 // src/pages/AdminBookings.tsx
-import React from "react";
+import React, { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getPendingBookings,
@@ -7,22 +7,28 @@ import {
   rejectBooking,
 } from "../service/booking";
 import { BookingList } from "../components/BookingList";
+import { useAutoRefresh } from "../context/AutoRefreshContext";
 
 const AdminBookings: React.FC = () => {
   const qc = useQueryClient();
+  const { lastRefresh } = useAutoRefresh(); // <-- global refresh context
 
-  // ✅ Updated to React Query v5 syntax
   const {
     data: pending = [],
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ["bookings", "pending"],
     queryFn: getPendingBookings,
     staleTime: 60_000,
   });
 
-  // ✅ Updated mutation syntax
+  // Auto-refetch on every global refresh
+  useEffect(() => {
+    refetch();
+  }, [lastRefresh, refetch]);
+
   const approve = useMutation({
     mutationFn: (id: number) => approveBooking(id),
     onSuccess: () => {

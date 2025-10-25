@@ -3,15 +3,15 @@ import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBooking } from "../service/booking";
 import type { Equipment } from "../service/equipment";
+import { toast } from "react-hot-toast";
 
 type Props = {
   equipments: Equipment[];
-  onSuccess?: () => void;
 };
 
 const isoLocal = (d: Date) => d.toISOString().slice(0, 16);
 
-export const BookingForm: React.FC<Props> = ({ equipments, onSuccess }) => {
+export const BookingForm: React.FC<Props> = ({ equipments }) => {
   const [equipmentId, setEquipmentId] = useState<number | "">("");
   const [quantity, setQuantity] = useState<number>(1);
   const [startAt, setStartAt] = useState<string>(isoLocal(new Date()));
@@ -21,40 +21,45 @@ export const BookingForm: React.FC<Props> = ({ equipments, onSuccess }) => {
 
   const qc = useQueryClient();
 
-  const { mutateAsync, isPending } = useMutation({
+  const mutation = useMutation({
     mutationFn: createBooking,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["equipments"] });
-      qc.invalidateQueries({ queryKey: ["bookings"] });
-      onSuccess?.();
+    retry: false,
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ["equipments"] });
+      await qc.invalidateQueries({ queryKey: ["bookings", "me"] });
+      toast.success("Booking request submitted successfully!", { id: "booking-success" });
+    },
+    onError: (err: any) => {
+      const msg =
+        err?.response?.data?.message?.replace(/^400 BAD_REQUEST\s*/, "") ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to create booking";
+      toast.error(msg, { id: "booking-error" });
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const id = typeof equipmentId === "number" ? equipmentId : Number(equipmentId);
     if (!id || quantity <= 0 || new Date(endAt) <= new Date(startAt)) {
-      alert("Please select an equipment, quantity > 0 and end > start");
+      toast.error("Please select valid equipment, quantity, and dates", { id: "booking-error" });
       return;
     }
 
-    try {
-      await mutateAsync({
-        equipmentId: id,
-        quantity,
-        startAt: new Date(startAt).toISOString(),
-        endAt: new Date(endAt).toISOString(),
-      });
-      alert("Booking requested");
-    } catch (err: any) {
-      console.error(err);
-      alert(err?.response?.data?.message ?? "Booking failed");
-    }
+    mutation.mutate({
+      equipmentId: id,
+      quantityRequested: quantity,
+      startAt: new Date(startAt).toISOString(),
+      endAt: new Date(endAt).toISOString(),
+    });
   };
 
+  const minDateTime = isoLocal(new Date()); // <-- prevents past selection
+
   return (
-    <form onSubmit={handleSubmit} className="request-form">
-      {/* Row 1: Equipment + Quantity */}
+    <form onSubmit={handleSubmit} className="request-form" noValidate>
+      {/* Equipment + Quantity */}
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="equipment">Equipment</label>
@@ -86,7 +91,7 @@ export const BookingForm: React.FC<Props> = ({ equipments, onSuccess }) => {
         </div>
       </div>
 
-      {/* Row 2: From + To */}
+      {/* Dates */}
       <div className="form-row">
         <div className="form-group">
           <label htmlFor="from">From</label>
@@ -95,9 +100,9 @@ export const BookingForm: React.FC<Props> = ({ equipments, onSuccess }) => {
             type="datetime-local"
             value={startAt}
             onChange={(e) => setStartAt(e.target.value)}
+            min={minDateTime} // <-- prevents past selection
           />
         </div>
-
         <div className="form-group">
           <label htmlFor="to">To</label>
           <input
@@ -105,14 +110,14 @@ export const BookingForm: React.FC<Props> = ({ equipments, onSuccess }) => {
             type="datetime-local"
             value={endAt}
             onChange={(e) => setEndAt(e.target.value)}
+            min={minDateTime} // <-- prevents past selection
           />
         </div>
       </div>
 
-      {/* Submit button */}
       <div className="form-actions">
-        <button type="submit" className="btn-primary" disabled={isPending}>
-          {isPending ? "Requesting..." : "Request Booking"}
+        <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+          {mutation.isPending ? "Requesting..." : "Request Booking"}
         </button>
       </div>
     </form>
