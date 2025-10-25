@@ -13,8 +13,10 @@ import com.school.equipmentlending.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -39,35 +41,40 @@ public class BookingService {
     }
 
     /**
-     * Create a booking request (PENDING). Does basic validation:
-     * - equipment exists
-     * - endAt > startAt
-     * - quantityRequested >= 1 and <= equipment.quantity (quick check)
-     *
-     * Full availability check is done at approval time.
+     * Create a booking request (PENDING)
      */
     @Transactional
     public BookingRequestDTO createBooking(String username, CreateBookingRequestDTO req) {
         logger.info("User {} creating booking for equipment {} from {} to {} (qty={})",
                 username, req.getEquipmentId(), req.getStartAt(), req.getEndAt(), req.getQuantityRequested());
 
+        // ✅ validation
+        if (req.getStartAt() == null || req.getEndAt() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Start and end time are required");
+        }
+
         if (!req.getEndAt().isAfter(req.getStartAt())) {
-            throw new BadRequestException("endAt must be after startAt");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "End time must be after start time");
         }
 
         Equipment equipment = equipmentRepo.findById(req.getEquipmentId())
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with id " + req.getEquipmentId()));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Equipment not found with id " + req.getEquipmentId()));
 
         if (req.getQuantityRequested() == null || req.getQuantityRequested() < 1) {
-            throw new BadRequestException("quantityRequested must be >= 1");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at least 1");
         }
 
-        if (req.getQuantityRequested() > equipment.getQuantity()) {
-            throw new BadRequestException("Requested quantity exceeds total inventory (" + equipment.getQuantity() + ")");
+        // ✅ only fail when requested > total available inventory
+        int available = equipment.getQuantity();
+        if (req.getQuantityRequested() > available) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Requested quantity (" + req.getQuantityRequested() + ") exceeds total inventory (" + available + ")");
         }
 
         User requester = userRepo.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found: " + username));
 
         BookingRequest booking = new BookingRequest();
         booking.setEquipment(equipment);
@@ -83,17 +90,18 @@ public class BookingService {
     }
 
     /**
-     * Approve a pending booking request (admin only)
+     * Approve booking (admin)
      */
     @Transactional
     public BookingRequestDTO approveBooking(Long bookingId, String adminUsername, String adminNote) {
-        logger.info("Admin {} attempting to approve booking id={}", adminUsername, bookingId);
+        logger.info("Admin {} approving booking {}", adminUsername, bookingId);
 
         BookingRequest booking = bookingRepo.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id " + bookingId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Booking not found with id " + bookingId));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new BadRequestException("Only PENDING bookings can be approved");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PENDING bookings can be approved");
         }
 
         LocalDateTime start = booking.getStartAt();
@@ -101,9 +109,9 @@ public class BookingService {
         int requested = booking.getQuantityRequested();
 
         try {
-            // Lock equipment row
             Equipment equipment = equipmentRepo.findByIdForUpdate(booking.getEquipment().getId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Equipment not found with id " + booking.getEquipment().getId()));
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                            "Equipment not found with id " + booking.getEquipment().getId()));
 
             Long reserved = loanRepo.sumOverlappingReserved(equipment.getId(), start, end);
             long reservedQty = (reserved == null ? 0L : reserved);
@@ -113,10 +121,10 @@ public class BookingService {
                     equipment.getId(), equipment.getQuantity(), reservedQty, availableUnits, requested);
 
             if (availableUnits < requested) {
-                throw new BadRequestException("Not enough units available in requested interval. Available: " + availableUnits + ", requested: " + requested);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Not enough units available. Available: " + availableUnits + ", requested: " + requested);
             }
 
-            // Create loan
             Loan loan = new Loan();
             loan.setEquipment(equipment);
             loan.setBorrower(booking.getRequester());
@@ -126,37 +134,34 @@ public class BookingService {
             loan.setStatus(LoanStatus.BORROWED);
             loanRepo.save(loan);
 
-            // Update booking
             booking.setStatus(BookingStatus.APPROVED);
             booking.setAdminNote(adminNote == null ? "Approved by " + adminUsername : adminNote);
             bookingRepo.save(booking);
 
-            logger.info("Booking {} approved by {}. Loan created id={}", booking.getId(), adminUsername, loan.getId());
             return BookingMapper.toDTO(booking);
 
         } catch (PessimisticLockingFailureException ex) {
-            logger.warn("Lock failed while approving booking {}", bookingId, ex);
-            throw new BadRequestException("Could not acquire lock to approve booking. Try again.");
+            logger.warn("Lock failed approving booking {}", bookingId, ex);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Could not acquire lock, please try again");
         }
     }
 
     /**
-     * Reject booking (admin only)
+     * Reject booking (admin)
      */
     @Transactional
     public BookingRequestDTO rejectBooking(Long bookingId, String adminUsername, String adminNote) {
         BookingRequest booking = bookingRepo.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id " + bookingId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Booking not found with id " + bookingId));
 
         if (booking.getStatus() != BookingStatus.PENDING) {
-            throw new BadRequestException("Only PENDING bookings can be rejected");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PENDING bookings can be rejected");
         }
 
         booking.setStatus(BookingStatus.REJECTED);
         booking.setAdminNote(adminNote == null ? "Rejected by " + adminUsername : adminNote);
         bookingRepo.save(booking);
-
-        logger.info("Booking {} rejected by {}", booking.getId(), adminUsername);
         return BookingMapper.toDTO(booking);
     }
 }

@@ -10,11 +10,14 @@ import com.school.equipmentlending.service.BookingService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,11 +35,23 @@ public class BookingController {
     }
 
     @PostMapping
-    public ResponseEntity<BookingRequestDTO> createBooking(@Valid @RequestBody CreateBookingRequestDTO req,
-                                                           Authentication authentication) {
+    public ResponseEntity<?> createBooking(@Valid @RequestBody CreateBookingRequestDTO req,
+                                           Authentication authentication) {
         String username = authentication.getName();
-        BookingRequestDTO dto = bookingService.createBooking(username, req);
-        return ResponseEntity.ok(dto);
+        try {
+            BookingRequestDTO dto = bookingService.createBooking(username, req);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException ex) {
+            // for validation-type exceptions from service
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+        } catch (RuntimeException ex) {
+            // for inventory errors or any domain rule violations
+            if (ex.getMessage() != null && ex.getMessage().contains("exceeds")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, ex.getMessage());
+            }
+            logger.error("Error creating booking", ex);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error occurred");
+        }
     }
 
     @GetMapping("/my")
