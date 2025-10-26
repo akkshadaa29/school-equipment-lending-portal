@@ -1,5 +1,6 @@
 package com.school.equipmentlending.dto;
 
+
 import java.time.LocalDateTime;
 
 public class EquipmentDTO {
@@ -35,4 +36,18 @@ public class EquipmentDTO {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public EquipmentDTO() {
+    }
+
+    public EquipmentDTO(Long id, String name, String category, String condition, int quantity, boolean available, int availableUnits, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.category = category;
+        this.condition = condition;
+        this.quantity = quantity;
+        this.available = available;
+        this.availableUnits = availableUnits;
+        this.createdAt = createdAt;
+    }
 }

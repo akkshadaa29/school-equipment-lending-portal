@@ -2,8 +2,6 @@ package com.school.equipmentlending.service;
 
 import com.school.equipmentlending.dto.BookingRequestDTO;
 import com.school.equipmentlending.dto.CreateBookingRequestDTO;
-import com.school.equipmentlending.exception.BadRequestException;
-import com.school.equipmentlending.exception.ResourceNotFoundException;
 import com.school.equipmentlending.mapper.BookingMapper;
 import com.school.equipmentlending.model.*;
 import com.school.equipmentlending.repository.BookingRequestRepository;
@@ -65,7 +63,7 @@ public class BookingService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantity must be at least 1");
         }
 
-        // ✅ only fail when requested > total available inventory
+
         int available = equipment.getQuantity();
         if (req.getQuantityRequested() > available) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
