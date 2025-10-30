@@ -1,4 +1,3 @@
-// src/services/equipment.ts
 import { api } from "../lib/axios";
 
 export type Equipment = {
@@ -7,6 +6,7 @@ export type Equipment = {
   category: string;
   available?: boolean;
   quantity?: number;
+  condition?: string; // ✅ added
   createdAt?: string;
 };
 
@@ -47,13 +47,14 @@ export const fetchEquipments = async (params?: {
 /**
  * Create a new equipment (Admin only)
  * POST /api/equipments
- * Payload exactly: { name, category, available, quantity }
+ * Payload: { name, category, available, quantity, condition }
  */
 export const createEquipment = async (payload: {
   name: string;
   category: string;
   available: boolean;
   quantity: number;
+  condition: string; // ✅ added
 }) => {
   const res = await api.post("/equipments", payload, {
     headers: {
@@ -66,6 +67,7 @@ export const createEquipment = async (payload: {
 /**
  * Update an existing equipment (Admin only)
  * PUT /api/equipments/{id}
+ * Payload may include: { name, category, available, quantity, condition }
  */
 export const updateEquipment = async (
   id: number,
@@ -74,6 +76,7 @@ export const updateEquipment = async (
     category: string;
     available: boolean;
     quantity: number;
+    condition: string; // ✅ added
   }>
 ) => {
   const res = await api.put(`/equipments/${id}`, payload, {

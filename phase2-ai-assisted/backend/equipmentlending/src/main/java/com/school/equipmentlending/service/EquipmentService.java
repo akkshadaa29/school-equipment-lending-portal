@@ -98,10 +98,22 @@ public class EquipmentService {
         return toDtoWithAvailability(saved, LocalDateTime.now());
     }
 
+    /**
+     * Delete equipment only if it exists and no loans reference it.
+     * If loans exist, throws IllegalStateException which is mapped to HTTP 409 by the global handler.
+     */
     public void deleteEquipment(Long id) {
         if (!equipmentRepository.existsById(id)) {
             throw new ResourceNotFoundException("Equipment not found with id " + id);
         }
+
+        if (loanRepository.existsByEquipment_Id(id)) {
+            throw new IllegalStateException(
+                    "Cannot delete this equipment because one or more loans reference it. " +
+                            "Please remove those loans first or mark the equipment unavailable."
+            );
+        }
+
         equipmentRepository.deleteById(id);
     }
 

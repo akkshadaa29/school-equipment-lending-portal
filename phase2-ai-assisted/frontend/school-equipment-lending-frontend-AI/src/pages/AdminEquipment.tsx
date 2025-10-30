@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEquipments, createEquipment, updateEquipment, deleteEquipment } from "../service/equipment";
 import EquipmentModal from "../components/EquipmentModal";
 import { useAuth } from "../context/AuthContext"; // adjust path if different
+import { Pencil, Trash2 } from "lucide-react";
+import type { AxiosError } from "axios";
 
 const AdminEquipment: React.FC = () => {
   const qc = useQueryClient();
@@ -18,6 +20,14 @@ const AdminEquipment: React.FC = () => {
     staleTime: 60_000,
   });
 
+  // helper to extract backend message from Axios error
+  const extractErrorMessage = (err: any) => {
+    const axiosErr = err as AxiosError<any>;
+    if (axiosErr?.response?.data?.message) return axiosErr.response.data.message;
+    if (axiosErr?.response?.data?.error) return axiosErr.response.data.error;
+    return axiosErr?.message || "An unexpected error occurred";
+  };
+
   // create
   const createMut = useMutation({
     mutationFn: (payload: any) => createEquipment(payload),
@@ -25,7 +35,9 @@ const AdminEquipment: React.FC = () => {
       qc.invalidateQueries({ queryKey: ["equipments"] });
       alert("Equipment created");
     },
-    onError: (err: any) => alert(err?.message ?? "Create failed"),
+    onError: (err: any) => {
+      alert(extractErrorMessage(err));
+    },
   });
 
   // update
@@ -35,17 +47,21 @@ const AdminEquipment: React.FC = () => {
       qc.invalidateQueries({ queryKey: ["equipments"] });
       alert("Equipment updated");
     },
-    onError: (err: any) => alert(err?.message ?? "Update failed"),
+    onError: (err: any) => {
+      alert(extractErrorMessage(err));
+    },
   });
 
   // delete
   const deleteMut = useMutation({
-    mutationFn: (id: number | string) => deleteEquipment(id),
+    mutationFn: (id: number | string) => deleteEquipment(Number(id)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["equipments"] });
       alert("Equipment deleted");
     },
-    onError: (err: any) => alert(err?.message ?? "Delete failed"),
+    onError: (err: any) => {
+      alert(extractErrorMessage(err));
+    },
   });
 
   const openAdd = () => {
@@ -64,52 +80,83 @@ const AdminEquipment: React.FC = () => {
       return;
     }
 
-    if (payload.id) {
-      await updateMut.mutateAsync({ id: payload.id, payload });
-    } else {
-      await createMut.mutateAsync(payload);
+    try {
+      if (payload.id) {
+        await updateMut.mutateAsync({ id: payload.id, payload });
+      } else {
+        await createMut.mutateAsync(payload);
+      }
+      setModalOpen(false);
+    } catch (e) {
+      // error handled by onError already (mutations show alerts). no-op
     }
   };
 
-  const handleDelete = (id: number | string) => {
+  const handleDelete = async (id: number | string) => {
     if (!confirm("Delete this equipment?")) return;
-    deleteMut.mutate(id);
+    try {
+      await deleteMut.mutateAsync(Number(id));
+    } catch (e) {
+      // onError already shows message; swallow
+    }
   };
 
-  // basic columns for table
   const columns = useMemo(() => ["Name", "Category", "Condition", "Available Units", "Actions"], []);
 
-  // --- Inline styles for quick paste ---
+  // styles unchanged...
   const styles: Record<string, React.CSSProperties> = {
     headerRowWrap: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 },
     card: { padding: 0 },
     tableWrapper: {
-      // change maxHeight to suit your layout; using viewport so it grows/shrinks with screen
-      maxHeight: "80vh",
+      maxHeight: "72vh",
       overflowY: "auto",
-      borderTop: "1px solid #efefef",
-      borderBottom: "1px solid #efefef",
-      // keep rounded card corners if your .card uses them
-      borderRadius: 6,
+      borderTop: "1px solid #e8edf1",
+      borderBottom: "1px solid #e8edf1",
+      borderRadius: 8,
+      boxShadow: "0 6px 18px rgba(22, 40, 60, 0.04)",
+      background: "#fff",
     },
     table: {
       width: "100%",
-      borderCollapse: "collapse",
-      // ensure the table doesn't shrink when inside a block with overflow
+      borderCollapse: "separate",
+      borderSpacing: 0,
       tableLayout: "auto",
-      minWidth: "700px", // optional: prevents columns from collapsing on very small widths
+      minWidth: "720px",
     },
     th: {
-      padding: "16px 20px",
+      padding: "14px 18px",
       textAlign: "left",
       position: "sticky",
       top: 0,
-      background: "#fff",
-      zIndex: 2,
-      borderBottom: "1px solid #eee",
+      background: "linear-gradient(180deg,#ffffff 0%, #fbfdff 60%)",
+      zIndex: 4,
+      borderBottom: "1px solid #e6eef3",
+      fontWeight: 700,
+      textTransform: "uppercase",
+      fontSize: 12,
+      letterSpacing: "0.06em",
+      color: "#16324a",
     },
-    td: { padding: "16px 20px", borderBottom: "1px solid #f3f3f3", verticalAlign: "middle" },
-    loadingRow: { padding: 20 },
+    thFirstCol: {
+      background: "linear-gradient(90deg,#f7fbff,#ffffff)",
+      borderRight: "1px solid #eef6fb",
+      boxShadow: "2px 0 0 rgba(0,0,0,0.02) inset",
+    },
+    td: { padding: "14px 18px", borderBottom: "1px solid #f5f8fa", verticalAlign: "middle", fontSize: 14, color: "#23313f" },
+    tdFirstCol: {
+      position: "sticky",
+      left: 0,
+      background: "#fff",
+      borderRight: "1px solid #f1f6fb",
+      zIndex: 3,
+    },
+    rowHover: { background: "rgba(34,50,66,0.02)" },
+    zebra: { background: "#fbfdff" },
+    actionsWrap: { display: "flex", gap: 8, alignItems: "center" },
+    btnGhost: { background: "transparent", border: "1px solid transparent", padding: "6px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 6 },
+    btnDestructive: { background: "rgba(220,38,38,0.06)", color: "#b91c1c", padding: "6px 10px", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8, borderRadius: 6, border: "1px solid rgba(220,38,38,0.12)" },
+    btnSmallText: { fontSize: 13, lineHeight: 1, padding: 0, border: "none", background: "transparent", cursor: "pointer" },
+    loadingRow: { padding: 20, textAlign: "center" },
   };
 
   return (
@@ -124,13 +171,12 @@ const AdminEquipment: React.FC = () => {
       </div>
 
       <div className="card table-card" style={styles.card}>
-        {/* This wrapper provides the scroll bar for the table only */}
         <div style={styles.tableWrapper}>
           <table className="equip-table" style={styles.table}>
             <thead>
               <tr>
-                {columns.map((c) => (
-                  <th key={c} style={styles.th}>
+                {columns.map((c, idx) => (
+                  <th key={c} style={{ ...styles.th, ...(idx === 0 ? styles.thFirstCol : {}) }}>
                     {c}
                   </th>
                 ))}
@@ -155,22 +201,35 @@ const AdminEquipment: React.FC = () => {
               )}
 
               {!isLoading &&
-                rows.map((r: any) => (
-                  <tr key={r.id}>
-                    <td style={styles.td}>{r.name}</td>
-                    <td style={styles.td}>{r.category}</td>
-                    <td style={styles.td}>{r.condition ?? "Unknown"}</td>
-                    <td style={styles.td}>{r.availableUnits ?? r.quantity ?? 0}</td>
-                    <td style={styles.td}>
-                      <button className="btn-ghost" onClick={() => openEdit(r)} style={{ marginRight: 8 }}>
-                        Edit
-                      </button>
-                      <button className="btn-small" onClick={() => handleDelete(r.id)}>
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                rows.map((r: any, rowIndex: number) => {
+                  const zebra = rowIndex % 2 === 1;
+                  return (
+                    <tr
+                      key={r.id}
+                      style={zebra ? styles.zebra : undefined}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = String(styles.rowHover.background))}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = zebra ? String(styles.zebra.background) : "transparent")}
+                    >
+                      <td style={{ ...styles.td, ...styles.tdFirstCol }}>{r.name}</td>
+                      <td style={styles.td}>{r.category}</td>
+                      <td style={styles.td}>{r.condition ?? "Unknown"}</td>
+                      <td style={styles.td}>{r.availableUnits ?? r.quantity ?? 0}</td>
+                      <td style={styles.td}>
+                        <div style={styles.actionsWrap}>
+                          <button aria-label={`Edit ${r.name}`} className="btn-ghost" onClick={() => openEdit(r)} style={styles.btnGhost}>
+                            <Pencil size={14} strokeWidth={2} style={{ color: "#0f766e" }} />
+                            <span style={{ fontSize: 13, color: "#0f3b36" }}>Edit</span>
+                          </button>
+
+                          <button aria-label={`Delete ${r.name}`} className="btn-destructive" onClick={() => handleDelete(r.id)} style={styles.btnDestructive}>
+                            <Trash2 size={14} strokeWidth={2} style={{ color: "#b91c1c" }} />
+                            <span style={{ fontSize: 13, color: "#7f1d1d" }}>Delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>

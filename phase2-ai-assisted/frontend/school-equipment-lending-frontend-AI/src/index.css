@@ -31,6 +31,7 @@ body {
   flex-direction: column;
   border-right: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08);
+  
 }
 
 .brand { font-size: 28px; font-weight: 700; margin-bottom: 24px; }
@@ -57,28 +58,53 @@ body {
 }
 
 /* ========== Buttons ========== */
-.btn {
-  display: inline-block;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: none;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-}
+/* Primary buttons */
 .btn-primary {
   background: var(--primary);
-  color: white;
+  color: #fff;
   border: none;
   padding: 10px 18px;
   border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
   box-shadow: 0 6px 14px rgba(42,161,152,0.15);
+  transition: background 0.2s ease, transform 0.1s ease;
 }
-.btn-primary:hover { background: var(--primary-dark); }
-.btn-small { padding: 6px 8px; font-size: 13px; border-radius: 6px; background: #1f6feb; color: white; border: none; cursor: pointer; }
-.btn-ghost { padding: 6px 8px; border-radius: 6px; background: transparent; border: 1px solid #ddd; cursor: pointer; }
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Small button (Edit / Delete) */
+.btn-small {
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(42,161,152,0.15);
+  transition: background 0.2s ease;
+}
+.btn-small:hover {
+  background: var(--primary-dark);
+}
+
+/* Ghost button (border only) */
+.btn-ghost {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  background: var(--primary);
+  color: #fff;
+}
 
 /* ========== Sidebar link colors & states ========== */
 .sidebar a {
@@ -86,17 +112,37 @@ body {
   text-decoration: none;
   transition: color 180ms ease, transform 120ms ease;
   display: inline-block;
-  padding: 6px 8px;
   border-radius: 6px;
   font-weight: 600;
+  /* 🟢 Removed padding so it won't override .nav-item spacing */
 }
+
+/* Ensure nav-item keeps left padding for icon spacing */
+.nav-list a.nav-item,
+.nav-list .nav-item {
+  padding: 12px 12px 12px 44px !important; /* preserve icon gap */
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.94);
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.nav-item.dashboard::before  { content: "🏠"; }
+.nav-item.bookings::before   { content: "📘"; }
+.nav-item.request::before    { content: "➕"; }
+.nav-item.loans::before      { content: "📥"; }
+.nav-item.pending::before    { content: "⏳"; }
+.nav-item.equipment::before  { content: "⚙️"; }
+
+.sidebar .nav-list li + li { margin-top: 10px; }
 .sidebar a:hover,
 .sidebar a:focus {
   color: var(--primary);
   transform: translateX(3px);
   text-decoration: none;
 }
-.sidebar .nav-list li + li { margin-top: 10px; }
 .sidebar a.active {
   background: rgba(255,255,255,0.05);
   color: var(--primary);
@@ -591,37 +637,54 @@ body {
   text-decoration: underline;
 }
 
+/* --- Sidebar footer icons --- */
+
 .sidebar-footer {
-  margin-top: auto;
-  padding-top: 24px;
+  margin-top: auto; /* redundant but safe */
+  padding-top: 20px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
+  gap: 8px;
   align-items: flex-start;
-  gap: 10px; /* spacing between admin and logout */
+}
+.sidebar-footer .footer-icon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.sidebar-footer .user-name {
-  font-size: 15px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+.sidebar-footer .footer-label {
+  display: inline-block;
+  margin-left: 6px;
 }
 
+.sidebar-footer .user-name,
 .sidebar-footer .logout {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: rgba(255,255,255,0.92);
   cursor: pointer;
-  opacity: 0.9;
-  transition: opacity 0.2s ease;
+  opacity: 0.95;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: transparent;
 }
 
 .sidebar-footer .logout:hover {
-  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(3px);
+  opacity: 1;
+  color: var(--primary);
 }
+
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -704,4 +767,251 @@ body {
   border-radius: 6px;
   cursor: pointer;
 }
+/* ===== Condition color pills ===== */
+.status-pill {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 70px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+  border: 1px solid transparent;
+}
+
+.status-pill[data-condition="Excellent"],
+.status-pill[data-condition="excellent"] {
+  background: #ecfdf5;
+  color: #047857;
+  border-color: rgba(6,95,70,0.1);
+}
+
+.status-pill[data-condition="Good"],
+.status-pill[data-condition="good"] {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: rgba(22,101,52,0.1);
+}
+
+.status-pill[data-condition="Fair"],
+.status-pill[data-condition="fair"] {
+  background: #fefce8;
+  color: #92400e;
+  border-color: rgba(146,64,14,0.1);
+}
+
+.status-pill[data-condition="Poor"],
+.status-pill[data-condition="poor"] {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: rgba(153,27,27,0.1);
+}
+
+.request-card form {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px 24px;
+  align-items: center;
+  max-width: 700px;
+}
+
+.request-card label {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.request-card input,
+.request-card select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+/* ------------------ Table design improvements ------------------ */
+/* Add an interesting font (Rubik). If you already load a font elsewhere, remove this import. */
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;800&display=swap');
+
+/* apply nicer font across app - Rubik is playful but professional */
+body {
+  font-family: "Rubik", Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Table card visual upgrade */
+.table-card {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: 0 6px 28px rgba(15, 23, 42, 0.04);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,250,0.98));
+}
+
+/* Use table caption for titles — make them bold and big */
+.equip-table caption,
+.table-card > .table-title {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  color: #15314b;
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+
+/* Modern table layout */
+.equip-table {
+  width: 100%;
+  border-collapse: separate; /* keep rounded corners look */
+  border-spacing: 0;
+  table-layout: auto;
+  background: transparent;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* Header */
+.equip-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: linear-gradient(180deg, #fbffff, #f6fbfa);
+  color: #31454f;
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 14px;
+  font-weight: 800; /* bold titles as requested */
+  border-bottom: 2px solid rgba(15,23,42,0.05);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Rounded corners at table edges */
+.equip-table thead th:first-child { border-top-left-radius: 12px; }
+.equip-table thead th:last-child  { border-top-right-radius: 12px; }
+.equip-table tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
+.equip-table tbody tr:last-child td:last-child  { border-bottom-right-radius: 12px; }
+
+/* Cells */
+.equip-table td {
+  padding: 14px 18px;
+  vertical-align: middle;
+  font-size: 15px;
+  color: #103043;
+  border-bottom: 1px solid rgba(15,23,42,0.03);
+}
+
+/* Zebra rows & subtle hover */
+.equip-table tbody tr:nth-child(odd) td {
+  background: rgba(245,247,249,0.6);
+}
+.equip-table tbody tr:hover td {
+  background: rgba(245,250,249,0.95);
+  transform: translateZ(0);
+}
+
+/* Make headings/titles inside table bold and more visible */
+.equip-table th.col-equipment,
+.equip-table th.col-qty,
+.equip-table th.col-range,
+.equip-table th.col-status,
+.equip-table th.col-requested,
+.equip-table th.col-actions {
+  font-weight: 800;
+  color: #2b4852;
+}
+
+/* Make the first column (name) stand out a little */
+.equip-table .equip-cell {
+  font-weight: 600;
+  color: #0f2730;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+/* Right align quantity & actions for neatness */
+.equip-table .qty-cell { text-align: center; font-weight: 700; color: #1f4b3a; width: 84px; }
+.equip-table .actions-cell { text-align: right; width: 200px; }
+
+/* Improve the duration cell (compact multi-line) */
+.equip-table .range-line { display:flex; gap:10px; align-items:center; flex-wrap:wrap; color: #374151; font-size: 13px; }
+.equip-table .arrow { opacity: 0.6; margin: 0 4px; }
+
+/* Status pills: cleaner, consistent */
+.status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  min-width: 84px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.04);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+.status-pending   { background: #fffbeb; color: #92400e; border-color: rgba(146,64,14,0.06); }
+.status-approved  { background: #ecfdf5; color: #065f46; border-color: rgba(6,95,70,0.06); }
+.status-rejected  { background: #fff1f2; color: #9f1239; border-color: rgba(159,18,57,0.06); }
+
+/* Buttons in actions column: more modern mini buttons */
+.actions-cell .btn-small {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 6px 16px rgba(15,23,42,0.06);
+}
+.actions-cell .btn-approve { background: linear-gradient(180deg,#22c55e,#10b981); border: none; }
+.actions-cell .btn-reject  { background: linear-gradient(180deg,#fb7185,#ef4444); border: none; }
+
+/* spacing / gap fallback (if gap unsupported) */
+.actions-cell .action-buttons { display:flex; align-items:center; gap:12px; justify-content:flex-end; }
+.actions-cell .action-buttons > button + button { margin-left: 12px; }
+
+/* Small screens: stack rows and show label for each cell (simple accessible stack) */
+@media (max-width: 720px) {
+  .equip-table, .equip-table thead, .equip-table tbody, .equip-table th, .equip-table td, .equip-table tr {
+    display: block;
+  }
+  .equip-table thead { display: none; } /* hide header row on mobile */
+  .equip-table tr {
+    margin-bottom: 12px;
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(15,23,42,0.03);
+    background: #fff;
+    padding: 12px;
+  }
+  .equip-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: none;
+  }
+  /* add label before each cell using data-* attribute (requires adding data-label in markup) */
+  .equip-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #6b7280;
+    margin-right: 12px;
+    min-width: 110px;
+    display: inline-block;
+  }
+  .actions-cell { text-align: right; }
+}
+
+/* small utility to show a nice empty state when no rows */
+.table-card .empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+/* End of table design improvements */
+
+
 

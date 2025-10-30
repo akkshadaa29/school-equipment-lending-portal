@@ -1,9 +1,9 @@
-// src/pages/MyLoans.tsx
 import React from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyLoans, returnLoan } from "../service/booking";
 import type { Loan } from "../service/booking";
 import { toast } from "react-hot-toast";
+import "./MyLoans.css"; // <-- local, scoped CSS for loans page
 
 const MyLoansPage: React.FC = () => {
   const qc = useQueryClient();
@@ -19,8 +19,8 @@ const MyLoansPage: React.FC = () => {
     onSuccess: () => {
       toast.success("Returned successfully");
       qc.invalidateQueries({ queryKey: ["loans", "me"] });
-      qc.invalidateQueries({ queryKey: ["equipments"] }); // refresh availability
-      qc.invalidateQueries({ queryKey: ["bookings", "mine"] }); // if bookings depend on loans
+      qc.invalidateQueries({ queryKey: ["equipments"] });
+      qc.invalidateQueries({ queryKey: ["bookings", "mine"] });
     },
     onError: (err: any) => {
       console.error("Return failed:", err);
@@ -38,18 +38,18 @@ const MyLoansPage: React.FC = () => {
   if (isError) return <div className="card">Failed to load loans.</div>;
 
   return (
-    <div>
+    <div className="my-loans-page">
       <h2 className="section-title">My Loans</h2>
 
       <div className="card table-card">
-        <table className="equip-table">
+        <table className="equip-table loan-table" aria-label="My loans">
           <thead>
             <tr>
-              <th>Equipment</th>
-              <th>Qty</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th className="col-equipment">Equipment</th>
+              <th className="col-qty">Qty</th>
+              <th className="col-range">Due Date</th>
+              <th className="col-status">Status</th>
+              <th className="col-actions">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -63,17 +63,32 @@ const MyLoansPage: React.FC = () => {
 
             {loans.map((l) => (
               <tr key={l.id}>
-                <td>{l.equipmentName ?? `#${l.equipmentId}`}</td>
-                <td>{l.quantity}</td>
-                <td>{new Date(l.dueAt).toLocaleString()}</td>
-                <td>{l.status}</td>
-                <td>
+                <td className="equip-cell" data-label="Equipment">
+                  {l.equipmentName ?? `#${l.equipmentId}`}
+                </td>
+
+                <td className="qty-cell" data-label="Qty" style={{ textAlign: "center" }}>
+                  {l.quantity}
+                </td>
+
+                <td className="range-cell" data-label="Due Date" style={{ textAlign: "center" }}>
+                  {new Date(l.dueAt).toLocaleDateString()}
+                </td>
+
+                <td className="status-cell" data-label="Status" style={{ textAlign: "center" }}>
+                  <span
+                    className={`status status-${(l.status || "default").toString().toLowerCase()}`}
+                  >
+                    {l.status}
+                  </span>
+                </td>
+
+                <td className="actions-cell" data-label="Action" style={{ textAlign: "right" }}>
                   {l.status === "BORROWED" ? (
                     <button
-                      className="btn-small"
+                      className="btn-small loan-return-btn"
                       disabled={mutation.isLoading}
                       onClick={() => {
-                        // optional: confirm with user
                         if (!confirm("Mark this loan as returned?")) return;
                         mutation.mutate(l.id);
                       }}
@@ -81,7 +96,7 @@ const MyLoansPage: React.FC = () => {
                       {mutation.isLoading ? "Returning..." : "Return"}
                     </button>
                   ) : (
-                    <span style={{ color: "#6b7280" }}>{l.status}</span>
+                    <span className="action-text">{l.status}</span>
                   )}
                 </td>
               </tr>

@@ -1,0 +1,175 @@
+/* MyLoans.css
+   Scoped table styles for the MyLoans page.
+   This targets only .loan-table so other tables remain unaffected.
+*/
+
+/* Page title */
+.my-loans-page .section-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #15314b;
+  margin-bottom: 18px;
+  font-family: "Rubik", Inter, sans-serif;
+}
+
+/* Card wrapper for loan table */
+.loan-table + .note { margin-top: 8px; color: #6b7280; }
+
+/* Core loan-table: predictable/well-aligned columns */
+.loan-table {
+  width: 100%;
+  table-layout: fixed; /* keeps header/body columns aligned */
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-family: "Rubik", Inter, sans-serif;
+}
+
+/* Header styles (scoped) */
+.loan-table thead th {
+  background: linear-gradient(180deg, #f9fafb, #f3f4f6);
+  color: #1f2937;
+  padding: 14px 18px;
+  font-weight: 800;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 2px solid rgba(0,0,0,0.05);
+}
+
+/* Body cell basics (match header padding; ellipsis for overflow) */
+.loan-table tbody td {
+  padding: 14px 18px;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 15px;
+  color: #0f2730;
+  border-bottom: 1px solid rgba(15,23,42,0.03);
+}
+
+/* Column width defaults (only apply to loan-table) */
+.loan-table th.col-equipment,
+.loan-table td.col-equipment,
+.loan-table td.equip-cell {
+  width: 38%;
+  min-width: 140px;
+}
+
+.loan-table th.col-qty,
+.loan-table td.col-qty,
+.loan-table td.qty-cell {
+  width: 80px;
+  text-align: center;
+}
+
+.loan-table th.col-range,
+.loan-table td.col-range,
+.loan-table td.range-cell {
+  width: 180px;
+  text-align: center;
+}
+
+.loan-table th.col-status,
+.loan-table td.col-status,
+.loan-table td.status-cell {
+  width: 140px;
+  text-align: center;
+}
+
+.loan-table th.col-actions,
+.loan-table td.col-actions,
+.loan-table td.actions-cell {
+  width: 160px;
+  text-align: right;
+}
+
+/* Zebra + hover */
+.loan-table tbody tr:nth-child(odd) td { background: #fcfdfd; }
+.loan-table tbody tr:nth-child(even) td { background: #fff; }
+
+.loan-table tbody tr:hover td {
+  background: #f7fdfb;
+  transition: background 0.18s ease;
+}
+
+/* Status pill (scoped) */
+.loan-table .status {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+  min-width: 84px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(15,23,42,0.04);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* Status color variants */
+.loan-table .status-borrowed { background: #e0ecff; color: #1e40af; border-color: rgba(30,64,175,0.10); }
+.loan-table .status-returned { background: #ecfdf5; color: #065f46; border-color: rgba(6,95,70,0.08); }
+.loan-table .status-overdue  { background: #ffecec; color: #b91c1c; border-color: rgba(185,28,28,0.10); }
+.loan-table .status-default  { background: #f3f4f6; color: #374151; border-color: rgba(0,0,0,0.03); }
+
+/* Action button (scoped) */
+.loan-table .btn-small.loan-return-btn {
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  background: linear-gradient(180deg,#3b82f6,#2563eb);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(37,99,235,0.10);
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+.loan-table .btn-small.loan-return-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+.loan-table .btn-small.loan-return-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Action text fallback */
+.loan-table .action-text {
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* Responsive: only apply stacking for small screens (keep desktop intact) */
+@media (max-width: 720px) {
+  .loan-table,
+  .loan-table thead,
+  .loan-table tbody,
+  .loan-table th,
+  .loan-table td,
+  .loan-table tr {
+    display: block;
+    table-layout: auto;
+    width: 100%;
+  }
+
+  .loan-table thead { display: none; }
+  .loan-table tr { margin-bottom: 12px; background: #fff; border-radius: 10px; box-shadow: 0 6px 20px rgba(15,23,42,0.03); padding: 12px; }
+
+  .loan-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-bottom: none;
+    white-space: normal;
+  }
+
+  /* uses data-label already present in JSX */
+  .loan-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #6b7280;
+    margin-right: 8px;
+  }
+}

@@ -17,21 +17,26 @@ const EquipmentModal: React.FC<EquipmentModalProps> = ({
   const [form, setForm] = useState({
     name: "",
     category: "",
-    quantity: 1, // changed from availableUnits
-    available: true, // optional, default true
+    quantity: 1,
+    available: true,
+    condition: "Good", // NEW: condition field
   });
 
   useEffect(() => {
     if (initial) {
-      // transform availableUnits to quantity if present
-      const { availableUnits, ...rest } = initial;
-      setForm({ ...rest, quantity: availableUnits ?? 1 });
+      const { availableUnits, condition, ...rest } = initial;
+      setForm({
+        ...rest,
+        quantity: availableUnits ?? 1,
+        condition: condition ?? "Good",
+      });
     } else {
       setForm({
         name: "",
         category: "",
         quantity: 1,
         available: true,
+        condition: "Good",
       });
     }
   }, [initial, open]);
@@ -98,6 +103,20 @@ const EquipmentModal: React.FC<EquipmentModalProps> = ({
             min={1}
             onChange={handleChange}
           />
+        </div>
+
+        <div className="form-group">
+          <label>Condition</label>
+          <select
+            name="condition"
+            value={(form as any).condition}
+            onChange={handleChange}
+          >
+            <option value="New">New</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+          </select>
         </div>
 
         <div className="modal-actions">

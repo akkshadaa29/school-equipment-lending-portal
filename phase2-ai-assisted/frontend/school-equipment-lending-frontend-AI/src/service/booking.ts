@@ -1,3 +1,4 @@
+// src/service/booking.ts
 import { api } from "../lib/axios";
 
 export type Booking = {
@@ -23,7 +24,10 @@ export type Loan = {
   status: "BORROWED" | "RETURNED" | "OVERDUE";
 };
 
-// ✅ remove the extra /api
+/**
+ * Create a booking request.
+ * Note: api is configured to send Authorization header and XSRF header if cookie present.
+ */
 export const createBooking = async (payload: {
   equipmentId: number;
   quantityRequested: number;

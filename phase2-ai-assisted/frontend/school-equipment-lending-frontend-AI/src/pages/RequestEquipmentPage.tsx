@@ -1,9 +1,9 @@
-// src/pages/RequestEquipment.tsx
+// src/pages/RequestEquipmentPage.tsx
 import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchEquipments } from "../service/equipment";
 import { BookingForm } from "../components/BookingForm";
-import { toast } from "react-hot-toast"; // 
+import { toast } from "react-hot-toast";
 
 const RequestEquipmentPage: React.FC = () => {
   const qc = useQueryClient();
@@ -13,14 +13,14 @@ const RequestEquipmentPage: React.FC = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["equipments", { for: "request" }],
+    queryKey: ["equipments", "request"],
     queryFn: () => fetchEquipments(),
     staleTime: 60_000,
   });
 
   return (
     <div>
-      <h2 className="section-title">Request equipment</h2>
+      <h2 className="section-title">Request Equipment</h2>
 
       {isLoading && <div className="card">Loading equipment…</div>}
       {isError && <div className="card">Failed to load equipment.</div>}

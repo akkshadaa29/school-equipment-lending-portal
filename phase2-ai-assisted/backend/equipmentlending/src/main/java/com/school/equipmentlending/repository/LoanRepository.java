@@ -37,4 +37,10 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
     """)
     Long sumCurrentlyReserved(@Param("equipmentId") Long equipmentId,
                               @Param("now") LocalDateTime now);
+
+    /**
+     * Return true if any Loan references the given equipment id.
+     * This is used to prevent deleting equipment that has related loans.
+     */
+    boolean existsByEquipment_Id(Long equipmentId);
 }

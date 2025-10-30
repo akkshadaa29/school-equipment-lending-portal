@@ -2,16 +2,19 @@
 import React from "react";
 import type { Equipment } from "../service/equipment";
 
+/* ---------- Condition Pill Component ---------- */
 const ConditionPill: React.FC<{ condition: string }> = ({ condition }) => {
-  const c = condition?.toLowerCase?.() ?? "";
-  let cls = "pill ";
-  if (c.includes("excellent")) cls += "pill-excellent";
-  else if (c.includes("good")) cls += "pill-good";
-  else if (c.includes("poor") || c.includes("bad")) cls += "pill-poor";
-  else cls += "pill-fair";
-  return <span className={cls}>{condition}</span>;
+  const normalized = condition?.toLowerCase?.() ?? "unknown";
+
+  // Ensure condition attribute matches CSS expectations
+  return (
+    <span className="status-pill" data-condition={condition}>
+      {condition || "Unknown"}
+    </span>
+  );
 };
 
+/* ---------- Equipment Table ---------- */
 export const EquipmentTable: React.FC<{ rows: Equipment[] }> = ({ rows }) => {
   if (!rows?.length) {
     return <div className="card table-card">No equipment found.</div>;
@@ -50,4 +53,5 @@ export const EquipmentTable: React.FC<{ rows: Equipment[] }> = ({ rows }) => {
     </div>
   );
 };
+
 export default EquipmentTable;

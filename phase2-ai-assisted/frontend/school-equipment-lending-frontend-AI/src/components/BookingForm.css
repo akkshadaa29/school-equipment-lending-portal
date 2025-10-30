@@ -1,0 +1,73 @@
+/* BookingForm.css - 2x2 grid with Start & End date on same row */
+
+.request-card {
+  padding: 28px 32px;
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.booking-form.grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two equal columns */
+  gap: 18px 40px;
+  align-items: start;
+  max-width: 980px;
+}
+
+/* field container */
+.booking-form .field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* labels */
+.booking-form label {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+/* inputs/selects */
+.booking-form input,
+.booking-form select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background: white;
+  color: #0f172a;
+  box-sizing: border-box;
+}
+
+/* request button */
+.booking-form .form-actions {
+  grid-column: 1 / -1;
+  margin-top: 18px;
+}
+
+/* green button */
+.btn-request {
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: #10b981;
+  color: white;
+  box-shadow: 0 8px 20px rgba(16,185,129,0.12);
+}
+.btn-request:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* responsive - stack on small screens */
+@media (max-width: 900px) {
+  .booking-form.grid-2x2 {
+    grid-template-columns: 1fr;
+  }
+  .booking-form .form-actions {
+    text-align: left;
+  }
+}
